@@ -4,7 +4,6 @@ import {
   SKIP_STX_RPC_URL_CHECK_CHAIN_IDS,
 } from '../../constants/smartTransactions';
 import {
-  getCurrentChainId,
   getCurrentNetwork,
   accountSupportsSmartTx,
   getSelectedAccount,
@@ -17,8 +16,11 @@ import { isProduction } from '../environment';
 // TODO: Remove restricted imports
 // eslint-disable-next-line import/no-restricted-paths
 import { MultichainState } from '../../../ui/selectors/multichain';
-// eslint-disable-next-line import/no-restricted-paths
-import { NetworkState } from '../../../ui/selectors/networks';
+import {
+  getCurrentChainId,
+  NetworkState,
+  // eslint-disable-next-line import/no-restricted-paths
+} from '../../../ui/selectors/networks';
 
 type SmartTransactionsMetaMaskState = {
   metamask: {
@@ -116,7 +118,7 @@ export const getSmartTransactionsPreferenceEnabled = createSelector(
 );
 
 export const getCurrentChainSupportsSmartTransactions = (
-  state: SmartTransactionsMetaMaskState,
+  state: NetworkState,
 ): boolean => {
   const chainId = getCurrentChainId(state);
   return getAllowedSmartTransactionsChainIds().includes(chainId);
