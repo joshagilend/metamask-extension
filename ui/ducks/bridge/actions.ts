@@ -43,7 +43,10 @@ import { decGWEIToHexWEI } from '../../../shared/modules/conversion.utils';
 import { FEATURED_RPCS } from '../../../shared/constants/network';
 import { getEthUsdtResetData, isEthUsdt } from '../../pages/bridge/bridge.util';
 import { ETH_USDT_ADDRESS } from '../../../shared/constants/bridge';
-import { getBridgeTxStatus } from '../bridge-status/actions';
+import {
+  getBridgeTxStatus,
+  startPollingForBridgeTxStatus,
+} from '../bridge-status/actions';
 import { bridgeSlice } from './bridge';
 import { BridgeAppState } from './selectors';
 
@@ -432,7 +435,7 @@ export const submitBridgeTransaction = (
       // Get bridge tx status
       if (bridgeTxMeta.hash) {
         dispatch(
-          getBridgeTxStatus({
+          startPollingForBridgeTxStatus({
             bridgeId: quoteResponse.quote.bridgeId,
             srcTxHash: bridgeTxMeta.hash,
             bridge: quoteResponse.quote.bridges[0],
