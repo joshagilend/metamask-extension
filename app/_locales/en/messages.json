@@ -856,8 +856,17 @@
   "bridgeEnterAmount": {
     "message": "Enter amount"
   },
+  "bridgeExplorerLinkViewOn": {
+    "message": "View on $1"
+  },
+  "bridgeFastest": {
+    "message": "Fastest"
+  },
   "bridgeFrom": {
     "message": "Bridge from"
+  },
+  "bridgeLowest": {
+    "message": "Lowest"
   },
   "bridgeOverallCost": {
     "message": "Overall cost"
