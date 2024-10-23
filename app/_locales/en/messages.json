@@ -859,8 +859,14 @@
   "bridgeExplorerLinkViewOn": {
     "message": "View on $1"
   },
+  "bridgeFastest": {
+    "message": "Fastest"
+  },
   "bridgeFrom": {
     "message": "Bridge from"
+  },
+  "bridgeLowest": {
+    "message": "Lowest"
   },
   "bridgeOverallCost": {
     "message": "Overall cost"
@@ -942,6 +948,9 @@
   },
   "bridgeTypeDirectionTo": {
     "message": "To"
+  },
+  "bridgeUseQuote": {
+    "message": "Use this quote"
   },
   "browserNotSupported": {
     "message": "Your browser is not supported..."
