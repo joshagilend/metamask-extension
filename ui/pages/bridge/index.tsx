@@ -34,6 +34,7 @@ import {
   setFromChain,
   setSrcTokenExchangeRates,
 } from '../../ducks/bridge/actions';
+import { useGasFeeEstimates } from '../../hooks/useGasFeeEstimates';
 import PrepareBridgePage from './prepare/prepare-bridge-page';
 import { BridgeCTAButton } from './prepare/bridge-cta-button';
 
@@ -78,6 +79,9 @@ const CrossChainSwap = () => {
       resetControllerAndInputStates();
     };
   }, []);
+
+  // Needed for refreshing gas estimates
+  useGasFeeEstimates(providerConfig?.id);
 
   const redirectToDefaultRoute = async () => {
     history.push({

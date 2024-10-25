@@ -1,5 +1,11 @@
+import { zeroAddress } from 'ethereumjs-util';
+import { BigNumber } from 'bignumber.js';
 import { calcTokenAmount } from '../../../../shared/lib/transactions-controller-utils';
-import { QuoteResponse, QuoteRequest } from '../types';
+import { QuoteResponse, QuoteRequest, Quote } from '../types';
+import {
+  hexToDecimal,
+  sumDecimals,
+} from '../../../../shared/modules/conversion.utils';
 
 export const isValidQuoteRequest = (
   partialRequest: Partial<QuoteRequest>,
@@ -33,27 +39,154 @@ export const isValidQuoteRequest = (
   );
 };
 
-export const getQuoteDisplayData = (quoteResponse?: QuoteResponse) => {
-  const { quote, estimatedProcessingTimeInSeconds } = quoteResponse ?? {};
-  if (!quoteResponse || !quote || !estimatedProcessingTimeInSeconds) {
-    return {};
-  }
-
-  const etaInMinutes = (estimatedProcessingTimeInSeconds / 60).toFixed();
-  const quoteRate = `1 ${quote.srcAsset.symbol} = ${calcTokenAmount(
-    quote.destTokenAmount,
-    quote.destAsset.decimals,
-  )
-    .div(calcTokenAmount(quote.srcTokenAmount, quote.srcAsset.decimals))
-    .toFixed(4)
-    .toString()} ${quote.destAsset.symbol}`;
-
+export const calcToAmount = (
+  { destTokenAmount, destAsset }: Quote,
+  toTokenExchangeRate: number | null,
+  toNativeExchangeRate: number | null,
+) => {
+  const normalizedDestAmount = calcTokenAmount(
+    destTokenAmount,
+    destAsset.decimals,
+  );
   return {
-    etaInMinutes,
-    totalFees: {
-      amount: '0.01 ETH', // TODO implement gas + relayer fee
-      fiat: '$0.01',
-    },
-    quoteRate,
+    raw: normalizedDestAmount,
+    fiat:
+      toTokenExchangeRate && toNativeExchangeRate
+        ? normalizedDestAmount.mul(
+            destAsset.address === zeroAddress()
+              ? toNativeExchangeRate.toString()
+              : toTokenExchangeRate.toString(),
+          )
+        : null,
   };
 };
+
+export const calcSentAmount = (
+  { srcTokenAmount, srcAsset, feeData }: Quote,
+  fromTokenExchangeRate: number | null,
+  fromNativeExchangeRate: number | null,
+) => {
+  const normalizedSentAmount = calcTokenAmount(
+    new BigNumber(srcTokenAmount).plus(feeData.metabridge.amount),
+    srcAsset.decimals,
+  );
+  const tokenExchangeRate =
+    srcAsset.address === zeroAddress()
+      ? fromNativeExchangeRate
+      : fromTokenExchangeRate;
+  return {
+    raw: normalizedSentAmount,
+    fiat: tokenExchangeRate
+      ? normalizedSentAmount.mul(tokenExchangeRate.toString())
+      : null,
+  };
+};
+
+const calcRelayerFee = (
+  bridgeQuote: QuoteResponse,
+  fromNativeExchangeRate?: number,
+) => {
+  const {
+    quote: { srcAsset, srcTokenAmount, feeData },
+    trade,
+  } = bridgeQuote;
+  const relayerFeeInNative = calcTokenAmount(
+    new BigNumber(hexToDecimal(trade.value)).minus(
+      srcAsset.address === zeroAddress()
+        ? new BigNumber(srcTokenAmount).plus(feeData.metabridge.amount)
+        : 0,
+    ),
+    18,
+  );
+  return {
+    raw: relayerFeeInNative,
+    fiat: fromNativeExchangeRate
+      ? relayerFeeInNative.mul(fromNativeExchangeRate)
+      : null,
+  };
+};
+
+const calcTotalGasFee = (
+  bridgeQuote: QuoteResponse,
+  estimatedBaseFeeInDecGwei: string,
+  maxPriorityFeePerGasInDecGwei: string,
+  fromNativeExchangeRate?: number,
+  l1GasInDecGwei?: BigNumber,
+) => {
+  const { approval, trade } = bridgeQuote;
+  const totalGasLimitInDec = sumDecimals(
+    trade.gasLimit?.toString() ?? '0',
+    approval?.gasLimit?.toString() ?? '0',
+  );
+  const feePerGasInDecGwei = sumDecimals(
+    estimatedBaseFeeInDecGwei,
+    maxPriorityFeePerGasInDecGwei,
+  );
+  const gasFeesInDecGwei = totalGasLimitInDec.times(feePerGasInDecGwei);
+
+  if (l1GasInDecGwei) {
+    gasFeesInDecGwei.add(l1GasInDecGwei);
+  }
+
+  const gasFeesInDecEth = new BigNumber(
+    gasFeesInDecGwei.shiftedBy(9).toString(),
+  );
+  const gasFeesInUSD = fromNativeExchangeRate
+    ? gasFeesInDecEth.times(fromNativeExchangeRate)
+    : null;
+
+  return {
+    raw: gasFeesInDecEth,
+    fiat: gasFeesInUSD,
+  };
+};
+
+export const calcTotalNetworkFee = (
+  bridgeQuote: QuoteResponse,
+  estimatedBaseFeeInDecGwei: string,
+  maxPriorityFeePerGasInDecGwei: string,
+  fromNativeExchangeRate?: number,
+) => {
+  const normalizedGasFee = calcTotalGasFee(
+    bridgeQuote,
+    estimatedBaseFeeInDecGwei,
+    maxPriorityFeePerGasInDecGwei,
+    fromNativeExchangeRate,
+  );
+  const normalizedRelayerFee = calcRelayerFee(
+    bridgeQuote,
+    fromNativeExchangeRate,
+  );
+  return {
+    raw: normalizedGasFee.raw.plus(normalizedRelayerFee.raw),
+    fiat: normalizedGasFee.fiat?.plus(normalizedRelayerFee.fiat || '0') ?? null,
+  };
+};
+
+export const calcAdjustedReturn = (
+  destTokenAmountInFiat: BigNumber | null,
+  totalNetworkFeeInFiat: BigNumber | null,
+) => ({
+  fiat:
+    destTokenAmountInFiat && totalNetworkFeeInFiat
+      ? destTokenAmountInFiat.minus(totalNetworkFeeInFiat)
+      : null,
+});
+
+export const calcSwapRate = (
+  sentAmount: BigNumber,
+  destTokenAmount: BigNumber,
+) => destTokenAmount.div(sentAmount);
+
+export const calcCost = (
+  adjustedReturnInFiat: BigNumber | null,
+  sentAmountInFiat: BigNumber | null,
+) => ({
+  fiat:
+    adjustedReturnInFiat && sentAmountInFiat
+      ? adjustedReturnInFiat.minus(sentAmountInFiat)
+      : null,
+});
+
+export const formatEtaInMinutes = (estimatedProcessingTimeInSeconds: number) =>
+  (estimatedProcessingTimeInSeconds / 60).toFixed();

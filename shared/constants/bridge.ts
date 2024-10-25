@@ -20,3 +20,8 @@ export const BRIDGE_API_BASE_URL = process.env.BRIDGE_USE_DEV_APIS
   : BRIDGE_PROD_API_BASE_URL;
 
 export const BRIDGE_CLIENT_ID = 'extension';
+
+export const BRIDGE_QUOTE_MAX_ETA_SECONDS = 60 * 60; // 1 hour
+export const BRIDGE_QUOTE_MAXRETURN_VALUE_DIFFERENCE_PERCENTAGE = 0.8; // if a quote returns in x times less return than the best quote, ignore it
+
+export const BRIDGE_PREFERRED_GAS_ESTIMATE = 'high';

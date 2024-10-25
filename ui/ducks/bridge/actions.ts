@@ -10,8 +10,8 @@ import {
 
 import { forceUpdateMetamaskState } from '../../store/actions';
 import { submitRequestToBackground } from '../../store/background-connection';
-import { MetaMaskReduxDispatch } from '../../store/store';
 import { QuoteRequest } from '../../pages/bridge/types';
+import { MetaMaskReduxDispatch } from '../../store/store';
 import {
   bridgeSlice,
   setDestTokenExchangeRates,
