@@ -150,6 +150,7 @@ describe('Ducks - Bridge', () => {
         toToken: null,
         fromTokenInputValue: null,
         toNativeExchangeRate: null,
+        sortOrder: 0,
         toTokenExchangeRate: null,
       });
     });
@@ -209,6 +210,7 @@ describe('Ducks - Bridge', () => {
       expect(newState).toStrictEqual({
         toChainId: null,
         fromToken: null,
+        sortOrder: 0,
         toToken: null,
         fromTokenInputValue: null,
         toNativeExchangeRate: null,

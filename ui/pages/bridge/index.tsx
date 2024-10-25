@@ -26,6 +26,7 @@ import {
 import { getProviderConfig } from '../../ducks/metamask/metamask';
 import { resetBridgeState, setFromChain } from '../../ducks/bridge/actions';
 import { useSwapsFeatureFlags } from '../swaps/hooks/useSwapsFeatureFlags';
+import { useGasFeeEstimates } from '../../hooks/useGasFeeEstimates';
 import PrepareBridgePage from './prepare/prepare-bridge-page';
 import { BridgeCTAButton } from './prepare/bridge-cta-button';
 
@@ -49,6 +50,9 @@ const CrossChainSwap = () => {
       providerConfig &&
       dispatch(setFromChain(providerConfig.chainId));
   }, [isBridgeChain, isBridgeEnabled, providerConfig]);
+
+  // Needed for refreshing gas estimates
+  useGasFeeEstimates(providerConfig?.id);
 
   const resetControllerAndInputStates = async () => {
     await dispatch(resetBridgeState());
