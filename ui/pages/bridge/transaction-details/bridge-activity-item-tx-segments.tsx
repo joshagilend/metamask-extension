@@ -17,10 +17,6 @@ import {
   FlexDirection,
   TextColor,
 } from '../../../helpers/constants/design-system';
-import {
-  TransactionMeta,
-  TransactionStatus,
-} from '@metamask/transaction-controller';
 import Segment from './segment';
 
 const getTxIndex = (
