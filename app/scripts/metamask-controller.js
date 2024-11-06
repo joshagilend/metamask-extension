@@ -1408,7 +1408,7 @@ export default class MetamaskController extends EventEmitter {
       messenger: this.controllerMessenger.getRestricted({
         name: 'DeviceController',
         allowedEvents: [],
-        allowedActions: ["ApprovalController:addRequest"],
+        allowedActions: ["PermissionController:getPermissions", "PermissionController:grantPermissionsIncremental"],
       }),
       state: initState.DeviceController,
     })
@@ -6062,7 +6062,7 @@ export default class MetamaskController extends EventEmitter {
             currency: fiatCurrency,
           };
         },
-        requestDevices: () => this.deviceController.requestDevices(origin),
+        requestDevice: () => this.deviceController.requestDevice(origin),
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
         hasPermission: this.permissionController.hasPermission.bind(
           this.permissionController,
