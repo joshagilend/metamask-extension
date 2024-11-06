@@ -1,5 +1,5 @@
 const { strict: assert } = require('assert');
-
+const { PAGES } = require('../../webdriver/driver');
 const {
   clickNestedButton,
   defaultGanacheOptions,
@@ -8,6 +8,7 @@ const {
   openDapp,
   WINDOW_TITLES,
   withFixtures,
+  tempToggleSettingRedesignedTransactionConfirmations,
 } = require('../../helpers');
 const FixtureBuilder = require('../../fixture-builder');
 const { SMART_CONTRACTS } = require('../../seeder/smart-contracts');
@@ -82,6 +83,11 @@ describe('Create token, approve token and approve token without gas', function (
           smartContract,
         );
         await logInWithBalanceValidation(driver, ganacheServer);
+
+        await tempToggleSettingRedesignedTransactionConfirmations(driver);
+
+        // Navigate to extension home screen
+        await driver.navigate(PAGES.HOME);
 
         // create token
         await openDapp(driver, contractAddress);
@@ -180,6 +186,11 @@ describe('Create token, approve token and approve token without gas', function (
           smartContract,
         );
         await logInWithBalanceValidation(driver, ganacheServer);
+
+        await tempToggleSettingRedesignedTransactionConfirmations(driver);
+
+        // Navigate to extension home screen
+        await driver.navigate(PAGES.HOME);
 
         // create token
         await openDapp(driver, contractAddress);
@@ -316,6 +327,11 @@ describe('Create token, approve token and approve token without gas', function (
         );
         await logInWithBalanceValidation(driver, ganacheServer);
 
+        await tempToggleSettingRedesignedTransactionConfirmations(driver);
+
+        // Navigate to extension home screen
+        await driver.navigate(PAGES.HOME);
+
         // create token
         await openDapp(driver, contractAddress);
         const windowHandles = await driver.getAllWindowHandles();
@@ -396,6 +412,11 @@ describe('Create token, approve token and approve token without gas', function (
           smartContract,
         );
         await logInWithBalanceValidation(driver, ganacheServer);
+
+        await tempToggleSettingRedesignedTransactionConfirmations(driver);
+
+        // Navigate to extension home screen
+        await driver.navigate(PAGES.HOME);
 
         await openDapp(driver, contractAddress);
         const windowHandles = await driver.getAllWindowHandles();
