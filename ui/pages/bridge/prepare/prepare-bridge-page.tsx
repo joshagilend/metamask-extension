@@ -230,6 +230,9 @@ const PrepareBridgePage = () => {
             network: fromChain,
             networks: fromChains,
             onNetworkChange: (networkConfig) => {
+              if (networkConfig.chainId === toChain?.chainId) {
+                dispatch(setToChainId(null));
+              }
               dispatch(
                 setActiveNetwork(
                   networkConfig.rpcEndpoints[
@@ -320,6 +323,8 @@ const PrepareBridgePage = () => {
               dispatch(setToChainId(networkConfig.chainId));
               dispatch(setToChain(networkConfig.chainId));
             },
+            shouldDisableNetwork: ({ chainId }) =>
+              chainId === fromChain?.chainId,
           }}
           customTokenListGenerator={
             toChain && toTokens && toTopAssets
