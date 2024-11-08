@@ -10,13 +10,12 @@ import { zeroAddress } from 'ethereumjs-util';
 import {
   getNetworkConfigurationsByChainId,
   getIsBridgeEnabled,
-  getSwapsDefaultToken,
-  SwapsEthToken,
   getCurrentCurrency,
 } from '../../selectors/selectors';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
   BRIDGE_PREFERRED_GAS_ESTIMATE,
+  BRIDGE_MIN_FIAT_SRC_AMOUNT,
   BRIDGE_QUOTE_MAX_ETA_SECONDS as MAX_ETA_SECONDS,
   BRIDGE_QUOTE_MAXRETURN_VALUE_DIFFERENCE_PERCENTAGE as MAX_RETURN_VALUE_DIFF_PERCENTAGE,
 } from '../../../shared/constants/bridge';
@@ -27,7 +26,7 @@ import {
   // eslint-disable-next-line import/no-restricted-paths
 } from '../../../app/scripts/controllers/bridge/types';
 import { createDeepEqualSelector } from '../../selectors/util';
-import { SwapsTokenObject } from '../../../shared/constants/swaps';
+import { SWAPS_CHAINID_DEFAULT_TOKEN_MAP } from '../../../shared/constants/swaps';
 import {
   getConversionRate,
   getGasFeeEstimates,
@@ -37,6 +36,7 @@ import {
 // eslint-disable-next-line import/no-restricted-paths
 import { RequestStatus } from '../../../app/scripts/controllers/bridge/constants';
 import {
+  BridgeToken,
   QuoteMetadata,
   QuoteResponse,
   SortOrder,
@@ -126,33 +126,51 @@ export const getToChain = createDeepEqualSelector(
     toChains.find(({ chainId }) => chainId === toChainId),
 );
 
-export const getFromTokens = (state: BridgeAppState) => {
-  return state.metamask.bridgeState.srcTokens ?? {};
-};
+export const getFromTokens = createDeepEqualSelector(
+  (state: BridgeAppState) => state.metamask.bridgeState.srcTokens,
+  (state: BridgeAppState) => state.metamask.bridgeState.srcTopAssets,
+  (state: BridgeAppState) =>
+    state.metamask.bridgeState.srcTokensLoadingStatus === RequestStatus.LOADING,
+  (fromTokens, fromTopAssets, isLoading) => {
+    return {
+      isLoading,
+      fromTokens: fromTokens ?? {},
+      fromTopAssets: fromTopAssets ?? [],
+    };
+  },
+);
 
-export const getFromTopAssets = (state: BridgeAppState) => {
-  return state.metamask.bridgeState.srcTopAssets ?? [];
-};
+export const getToTokens = createDeepEqualSelector(
+  (state: BridgeAppState) => state.metamask.bridgeState.destTokens,
+  (state: BridgeAppState) => state.metamask.bridgeState.destTopAssets,
+  (state: BridgeAppState) =>
+    state.metamask.bridgeState.destTokensLoadingStatus ===
+    RequestStatus.LOADING,
+  (toTokens, toTopAssets, isLoading) => {
+    return {
+      isLoading,
+      toTokens: toTokens ?? {},
+      toTopAssets: toTopAssets ?? [],
+    };
+  },
+);
 
-export const getToTopAssets = (state: BridgeAppState) => {
-  return state.bridge.toChainId ? state.metamask.bridgeState.destTopAssets : [];
-};
+export const getFromToken = createSelector(
+  (state: BridgeAppState) => state.bridge.fromToken,
+  getFromChain,
+  (fromToken, fromChain): BridgeToken | null => {
+    if (!fromChain?.chainId) {
+      return null;
+    }
+    return fromToken?.address
+      ? fromToken
+      : SWAPS_CHAINID_DEFAULT_TOKEN_MAP[
+          fromChain.chainId as keyof typeof SWAPS_CHAINID_DEFAULT_TOKEN_MAP
+        ];
+  },
+);
 
-export const getToTokens = (state: BridgeAppState) => {
-  return state.bridge.toChainId ? state.metamask.bridgeState.destTokens : {};
-};
-
-export const getFromToken = (
-  state: BridgeAppState,
-): SwapsTokenObject | SwapsEthToken | null => {
-  return state.bridge.fromToken?.address
-    ? state.bridge.fromToken
-    : getSwapsDefaultToken(state);
-};
-
-export const getToToken = (
-  state: BridgeAppState,
-): SwapsTokenObject | SwapsEthToken | null => {
+export const getToToken = (state: BridgeAppState): BridgeToken | null => {
   return state.bridge.toToken;
 };
 
@@ -334,7 +352,7 @@ export const getBridgeQuotes = createSelector(
   ) => ({
     sortedQuotes: sortedQuotesWithMetadata,
     recommendedQuote,
-    activeQuote: selectedQuote ?? recommendedQuote,
+    activeQuote: selectedQuote || recommendedQuote,
     quotesLastFetchedMs,
     isLoading,
     quotesRefreshCount,
@@ -396,4 +414,26 @@ export const getIsBridgeTx = createDeepEqualSelector(
     isBridgeEnabled && toChain && fromChain?.chainId
       ? fromChain.chainId !== toChain.chainId
       : false,
+);
+
+export const getValidationErrors = createDeepEqualSelector(
+  getBridgeQuotes,
+  getFromAmountInFiat,
+  getFromAmount,
+  (
+    { activeQuote, quotesLastFetchedMs, isLoading },
+    fromAmountInFiat,
+    fromAmount,
+  ) => {
+    return {
+      isNoQuotesAvailable: !activeQuote && quotesLastFetchedMs && !isLoading,
+      isSrcAmountLessThan30:
+        activeQuote?.sentAmount.fiat?.lt(30) &&
+        activeQuote?.sentAmount.fiat?.gt(BRIDGE_MIN_FIAT_SRC_AMOUNT),
+      isSrcAmountTooLow:
+        fromAmount && fromAmountInFiat.lte(BRIDGE_MIN_FIAT_SRC_AMOUNT),
+      isInsufficientBalance: (balance?: BigNumber) =>
+        fromAmount && balance !== undefined ? balance.lt(fromAmount) : false,
+    };
+  },
 );

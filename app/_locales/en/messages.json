@@ -547,6 +547,7 @@
   "amountSent": {
     "message": "Amount Sent"
   },
+  "amountTooLow": { "message": "Amount too low" },
   "andForListItems": {
     "message": "$1, and $2",
     "description": "$1 is the first item, $2 is the last item in a list of items. Used in Snap Install Warning modal."
@@ -853,6 +854,9 @@
   "bridge": {
     "message": "Bridge"
   },
+  "bridgeApprovalWarning": {
+    "message": "You are allowing access to the specified amount, $1 $2. The contract will not access any additional funds."
+  },
   "bridgeCalculatingAmount": {
     "message": "Calculating..."
   },
@@ -1006,6 +1010,9 @@
   },
   "cancelled": {
     "message": "Cancelled"
+  },
+  "cantBridgeUnderAmount": {
+    "message": "You can't bridge under $1, but you can still see potential quotes."
   },
   "chainId": {
     "message": "Chain ID"
@@ -2339,6 +2346,7 @@
   "gotIt": {
     "message": "Got it"
   },
+  "grantExactAccess": { "message": "Grant exact access" },
   "grantedToWithColon": {
     "message": "Granted to:"
   },
@@ -3047,6 +3055,9 @@
     "message": "M",
     "description": "Shortened form of 'million'"
   },
+  "minimumAmountError": {
+    "message": "Minimum $1"
+  },
   "mismatchAccount": {
     "message": "Your selected account ($1) is different than the account trying to sign ($2)"
   },
@@ -3450,6 +3461,15 @@
   },
   "noNetworksFound": {
     "message": "No networks found for the given search query"
+  },
+  "noOptionsAvailable": {
+    "message": "No options available"
+  },
+  "noOptionsAvailableLessThan30Message": {
+    "message": "We didn’t find any options for this route. Try bridging at least $30, or try again with a different network or token."
+  },
+  "noOptionsAvailableMessage": {
+    "message": "We didn’t find any options for this route. Try again with a different amount, network, or token."
   },
   "noSnaps": {
     "message": "You don't have any snaps installed."
@@ -6017,7 +6037,7 @@
     "message": "Potentially inauthentic token"
   },
   "swapTokenVerifiedSources": {
-    "message": "Confirmed by $1 sources. Verify on $2.",
+    "message": "Confirmed by $1 sources. Verify on $2",
     "description": "$1 the number of sources that have verified the token, $2 points the user to a block explorer as a place they can verify information about the token."
   },
   "swapTooManyDecimalsError": {
@@ -6714,6 +6734,9 @@
   },
   "whatsThis": {
     "message": "What's this?"
+  },
+  "willApproveAmountForBridging": {
+    "message": "This will approve $1 $2 for bridging."
   },
   "withdrawing": {
     "message": "Withdrawing"

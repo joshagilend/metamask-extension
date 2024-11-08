@@ -30,15 +30,20 @@ import {
   TextVariant,
 } from '../../../helpers/constants/design-system';
 import { CHAINID_DEFAULT_BLOCK_EXPLORER_HUMAN_READABLE_URL_MAP } from '../../../../shared/constants/common';
-import { BridgeAssetPickerButton } from './components/bridge-asset-picker-button';
 import { zeroAddress } from '../../../__mocks__/ethereumjs-util';
 import { AssetType } from '../../../../shared/constants/transaction';
 import {
   CHAIN_ID_TO_CURRENCY_SYMBOL_MAP,
   CHAIN_ID_TOKEN_IMAGE_MAP,
 } from '../../../../shared/constants/network';
+import { BRIDGE_MIN_FIAT_SRC_AMOUNT } from '../../../../shared/constants/bridge';
+import { BridgeToken } from '../types';
 import useLatestBalance from '../../../hooks/bridge/useLatestBalance';
-import { getBridgeQuotes } from '../../../ducks/bridge/selectors';
+import {
+  getBridgeQuotes,
+  getValidationErrors,
+} from '../../../ducks/bridge/selectors';
+import { BridgeAssetPickerButton } from './components/bridge-asset-picker-button';
 
 const generateAssetFromToken = (
   chainId: Hex,
@@ -72,6 +77,7 @@ export const BridgeInputGroup = ({
   onAssetChange,
   onAmountChange,
   networkProps,
+  isTokenListLoading,
   customTokenListGenerator,
   amountFieldProps,
   amountInFiat,
@@ -79,11 +85,7 @@ export const BridgeInputGroup = ({
 }: {
   amountInFiat?: BigNumber;
   onAmountChange?: (value: string) => void;
-
-
-
-
-    amountInFiat?: BigNumber;
+  token: BridgeToken | null;
   amountFieldProps: Pick<
     React.ComponentProps<typeof TextField>,
     'testId' | 'autoFocus' | 'value' | 'readOnly' | 'disabled' | 'className'
@@ -92,7 +94,11 @@ export const BridgeInputGroup = ({
   onMaxButtonClick?: (value: string) => void;
 } & Pick<
   React.ComponentProps<typeof AssetPicker>,
-  'networkProps' | 'header' | 'customTokenListGenerator' | 'onAssetChange'
+  | 'networkProps'
+  | 'header'
+  | 'customTokenListGenerator'
+  | 'onAssetChange'
+  | 'isTokenListLoading'
 >) => {
   const t = useI18nContext();
 
@@ -102,6 +108,9 @@ export const BridgeInputGroup = ({
   const selectedChainId = networkProps?.network?.chainId;
   const isAmountReadOnly =
     amountFieldProps?.readOnly || amountFieldProps?.disabled;
+
+  const { isInsufficientBalance, isSrcAmountTooLow } =
+    useSelector(getValidationErrors);
 
   const blockExplorerUrl =
     networkProps?.network?.defaultBlockExplorerUrlIndex === undefined
@@ -138,6 +147,7 @@ export const BridgeInputGroup = ({
           onAssetChange={onAssetChange}
           networkProps={networkProps}
           customTokenListGenerator={customTokenListGenerator}
+          isTokenListLoading={isTokenListLoading}
         >
           {(onClickHandler, networkImageSrc) => (
             <BridgeAssetPickerButton
@@ -209,7 +219,9 @@ export const BridgeInputGroup = ({
           gap={2}
           variant={TextVariant.bodySm}
           color={
-             TextColor.textAlternative
+            !isAmountReadOnly && isInsufficientBalance(normalizedBalance)
+              ? TextColor.errorDefault
+              : TextColor.textAlternative
           }
           style={{ height: 20 }}
         >
@@ -260,6 +272,17 @@ export const BridgeInputGroup = ({
               </ButtonLink>
             )}
         </Text>
+        {!isAmountReadOnly && isSrcAmountTooLow && (
+          <Text variant={TextVariant.bodySm} color={TextColor.errorDefault}>
+            {t('minimumAmountError', [
+              formatFiatAmount(
+                new BigNumber(BRIDGE_MIN_FIAT_SRC_AMOUNT),
+                currency,
+                0,
+              ),
+            ])}
+          </Text>
+        )}
       </Row>
     </Column>
   );

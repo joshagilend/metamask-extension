@@ -3,7 +3,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import classnames from 'classnames';
 import { debounce } from 'lodash';
 import { Hex } from '@metamask/utils';
-import { zeroAddress } from 'ethereumjs-util';
 import { useSearchParams } from 'react-router-dom-v5-compat';
 import {
   setDestTokenExchangeRates,
@@ -26,14 +25,12 @@ import {
   getFromChains,
   getFromToken,
   getFromTokens,
-  getFromTopAssets,
   getQuoteRequest,
   getSlippage,
   getToChain,
   getToChains,
   getToToken,
   getToTokens,
-  getToTopAssets,
 } from '../../../ducks/bridge/selectors';
 import {
   Box,
@@ -77,12 +74,18 @@ const PrepareBridgePage = () => {
   const currency = useSelector(getCurrentCurrency);
 
   const fromToken = useSelector(getFromToken);
-  const fromTokens = useSelector(getFromTokens);
-  const fromTopAssets = useSelector(getFromTopAssets);
+  const {
+    fromTokens,
+    fromTopAssets,
+    isLoading: isFromTokensLoading,
+  } = useSelector(getFromTokens);
 
   const toToken = useSelector(getToToken);
-  const toTokens = useSelector(getToTokens);
-  const toTopAssets = useSelector(getToTopAssets);
+  const {
+    toTokens,
+    toTopAssets,
+    isLoading: isToTokensLoading,
+  } = useSelector(getToTokens);
 
   const fromChains = useSelector(getFromChains);
   const toChains = useSelector(getToChains);
@@ -251,6 +254,7 @@ const PrepareBridgePage = () => {
             autoFocus: true,
             value: fromAmount || undefined,
           }}
+          isTokenListLoading={isFromTokensLoading}
         />
 
         <Box
@@ -335,6 +339,7 @@ const PrepareBridgePage = () => {
               ? 'amount-input defined'
               : 'amount-input',
           }}
+          isTokenListLoading={isToTokensLoading}
         />
       </Column>
 
