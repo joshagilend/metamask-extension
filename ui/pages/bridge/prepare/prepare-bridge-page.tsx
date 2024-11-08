@@ -21,6 +21,7 @@ import {
 import {
   getBridgeQuotes,
   getFromAmount,
+  getFromAmountInFiat,
   getFromChain,
   getFromChains,
   getFromToken,
@@ -89,6 +90,7 @@ const PrepareBridgePage = () => {
   const toChain = useSelector(getToChain);
 
   const fromAmount = useSelector(getFromAmount);
+  const fromAmountInFiat = useSelector(getFromAmountInFiat);
 
   const providerConfig = useSelector(getProviderConfig);
   const slippage = useSelector(getSlippage);
@@ -124,7 +126,7 @@ const PrepareBridgePage = () => {
       destTokenAddress: toToken?.address || undefined,
       srcTokenAmount:
         fromAmount && fromAmount !== '' && fromToken?.decimals
-          ? calcTokenValue(fromAmount, fromToken.decimals).toString()
+          ? calcTokenValue(fromAmount, fromToken.decimals).toFixed()
           : undefined,
       srcChainId: fromChain?.chainId
         ? Number(hexToDecimal(fromChain.chainId))
@@ -240,6 +242,10 @@ const PrepareBridgePage = () => {
           customTokenListGenerator={
             fromTokens && fromTopAssets ? fromTokenListGenerator : undefined
           }
+          onMaxButtonClick={(value: string) => {
+            dispatch(setFromTokenInputValue(value));
+          }}
+          amountInFiat={fromAmountInFiat}
           amountFieldProps={{
             testId: 'from-amount',
             autoFocus: true,
@@ -316,11 +322,15 @@ const PrepareBridgePage = () => {
               ? toTokenListGenerator
               : fromTokenListGenerator
           }
+          amountInFiat={activeQuote?.toTokenAmount?.fiat || undefined}
           amountFieldProps={{
             testId: 'to-amount',
             readOnly: true,
             disabled: true,
-            value: activeQuote?.toTokenAmount?.raw.toFixed(2) ?? '0',
+            value: activeQuote?.toTokenAmount?.raw
+              ? activeQuote.toTokenAmount.raw.toNumber()
+              : undefined,
+            autoFocus: false,
             className: activeQuote?.toTokenAmount.raw
               ? 'amount-input defined'
               : 'amount-input',

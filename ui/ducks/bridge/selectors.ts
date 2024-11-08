@@ -6,11 +6,13 @@ import { orderBy, uniqBy } from 'lodash';
 import { createSelector } from 'reselect';
 import { GasFeeEstimates } from '@metamask/gas-fee-controller';
 import { BigNumber } from 'bignumber.js';
+import { zeroAddress } from 'ethereumjs-util';
 import {
   getNetworkConfigurationsByChainId,
   getIsBridgeEnabled,
   getSwapsDefaultToken,
   SwapsEthToken,
+  getCurrentCurrency,
 } from '../../selectors/selectors';
 import {
   ALLOWED_BRIDGE_CHAIN_IDS,
@@ -26,7 +28,11 @@ import {
 } from '../../../app/scripts/controllers/bridge/types';
 import { createDeepEqualSelector } from '../../selectors/util';
 import { SwapsTokenObject } from '../../../shared/constants/swaps';
-import { getGasFeeEstimates, getProviderConfig } from '../metamask/metamask';
+import {
+  getConversionRate,
+  getGasFeeEstimates,
+  getProviderConfig,
+} from '../metamask/metamask';
 // TODO: Remove restricted import
 // eslint-disable-next-line import/no-restricted-paths
 import { RequestStatus } from '../../../app/scripts/controllers/bridge/constants';
@@ -43,7 +49,10 @@ import {
   calcToAmount,
   calcTotalNetworkFee,
 } from '../../pages/bridge/utils/quote';
-import { decGWEIToHexWEI } from '../../../shared/modules/conversion.utils';
+import {
+  decEthToConvertedCurrency,
+  decGWEIToHexWEI,
+} from '../../../shared/modules/conversion.utils';
 import { BridgeState } from './bridge';
 
 export type BridgeAppState = {
@@ -333,6 +342,50 @@ export const getBridgeQuotes = createSelector(
       ? false
       : quotesRefreshCount < maxRefreshCount,
   }),
+);
+
+export const getFromAmountInFiat = createSelector(
+  getFromToken,
+  getFromChain,
+  getFromAmount,
+  (state: BridgeAppState) => state.bridge.fromTokenExchangeRate,
+  (state: BridgeAppState) => state.bridge.fromNativeExchangeRate,
+  getConversionRate,
+  getCurrentCurrency,
+  (
+    fromToken,
+    fromChain,
+    fromAmount,
+    fromTokenExchangeRate,
+    fromNativeExchangeRate,
+    cachedFromNativeExchangeRate,
+    currentCurrency,
+  ) => {
+    const nativeExchangeRate =
+      fromNativeExchangeRate ?? cachedFromNativeExchangeRate;
+    if (
+      fromToken?.symbol &&
+      fromChain?.chainId &&
+      fromAmount &&
+      nativeExchangeRate
+    ) {
+      if (fromToken.address === zeroAddress()) {
+        return new BigNumber(
+          decEthToConvertedCurrency(
+            fromAmount,
+            currentCurrency,
+            nativeExchangeRate,
+          ).toString(),
+        );
+      }
+      if (fromTokenExchangeRate) {
+        return new BigNumber(fromAmount).mul(
+          new BigNumber(fromTokenExchangeRate.toString() ?? 1),
+        );
+      }
+    }
+    return new BigNumber(0);
+  },
 );
 
 export const getIsBridgeTx = createDeepEqualSelector(
