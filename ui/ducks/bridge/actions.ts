@@ -43,10 +43,7 @@ import { decGWEIToHexWEI } from '../../../shared/modules/conversion.utils';
 import { FEATURED_RPCS } from '../../../shared/constants/network';
 import { getEthUsdtResetData, isEthUsdt } from '../../pages/bridge/bridge.util';
 import { ETH_USDT_ADDRESS } from '../../../shared/constants/bridge';
-import {
-  getBridgeTxStatus,
-  startPollingForBridgeTxStatus,
-} from '../bridge-status/actions';
+import { startPollingForBridgeTxStatus } from '../bridge-status/actions';
 import { bridgeSlice } from './bridge';
 import { BridgeAppState } from './selectors';
 
