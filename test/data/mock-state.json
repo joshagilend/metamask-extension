@@ -2021,6 +2021,9 @@
           }
         }
       }
+    },
+    "bridgeStatusState": {
+      "txHistory": {}
     }
   },
   "ramps": {
