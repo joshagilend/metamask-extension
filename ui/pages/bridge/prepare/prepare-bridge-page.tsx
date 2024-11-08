@@ -16,6 +16,7 @@ import {
   setToChainId,
   setToToken,
   updateQuoteRequestParams,
+  resetBridgeState,
 } from '../../../ducks/bridge/actions';
 import {
   getBridgeQuotes,
@@ -37,8 +38,18 @@ import {
   Box,
   ButtonIcon,
   IconName,
+  Text,
 } from '../../../components/component-library';
-import { BlockSize } from '../../../helpers/constants/design-system';
+import {
+  BlockSize,
+  BorderColor,
+  BorderRadius,
+  FlexDirection,
+  JustifyContent,
+  TextAlign,
+  TextColor,
+  TextVariant,
+} from '../../../helpers/constants/design-system';
 import { useI18nContext } from '../../../hooks/useI18nContext';
 import { TokenBucketPriority } from '../../../../shared/constants/swaps';
 import { useTokensWithFiltering } from '../../../hooks/useTokensWithFiltering';
@@ -51,7 +62,11 @@ import { isValidQuoteRequest } from '../utils/quote';
 import { getProviderConfig } from '../../../ducks/metamask/metamask';
 import { getCurrentCurrency } from '../../../selectors';
 import { SECOND } from '../../../../shared/constants/time';
+import { Footer } from '../../../components/multichain/pages/page';
+import MascotBackgroundAnimation from '../../swaps/mascot-background-animation/mascot-background-animation';
+import { Column, Row, Tooltip } from '../layout';
 import { BridgeInputGroup } from './bridge-input-group';
+import { BridgeCTAButton } from './bridge-cta-button';
 
 const PrepareBridgePage = () => {
   const dispatch = useDispatch();
@@ -79,7 +94,7 @@ const PrepareBridgePage = () => {
   const slippage = useSelector(getSlippage);
 
   const quoteRequest = useSelector(getQuoteRequest);
-  const { activeQuote } = useSelector(getBridgeQuotes);
+  const { activeQuote, isLoading } = useSelector(getBridgeQuotes);
 
   const [searchParams, setSearchParams] = useSearchParams();
 
@@ -97,6 +112,11 @@ const PrepareBridgePage = () => {
   );
 
   const [rotateSwitchTokens, setRotateSwitchTokens] = useState(false);
+
+  useEffect(() => {
+    // Reset controller and inputs on load
+    dispatch(resetBridgeState());
+  }, []);
 
   const quoteParams = useMemo(
     () => ({
@@ -125,8 +145,6 @@ const PrepareBridgePage = () => {
       slippage,
     ],
   );
-
-  // TODO if input fields are empty reset bridge state and controller quotes
 
   const debouncedUpdateQuoteRequestInController = useCallback(
     debounce((p: Partial<QuoteRequest>) => {
@@ -181,10 +199,16 @@ const PrepareBridgePage = () => {
   }, [fromChain, fromToken, fromTokens, searchParams]);
 
   return (
-    <div className="prepare-bridge-page">
-      <Box className="prepare-bridge-page__content">
+    <Column className="prepare-bridge-page">
+      <Column
+        paddingTop={6}
+        paddingBottom={4}
+        paddingInline={0}
+        borderRadius={BorderRadius.LG}
+        borderWidth={1}
+        borderColor={BorderColor.borderMuted}
+      >
         <BridgeInputGroup
-          className="bridge-box"
           header={t('bridgeFrom')}
           token={fromToken}
           onAmountChange={(e) => {
@@ -223,7 +247,11 @@ const PrepareBridgePage = () => {
           }}
         />
 
-        <Box className="prepare-bridge-page__switch-tokens">
+        <Box
+          className="prepare-bridge-page__switch-tokens"
+          paddingTop={2}
+          paddingBottom={4}
+        >
           <ButtonIcon
             iconProps={{
               className: classnames({
@@ -267,7 +295,6 @@ const PrepareBridgePage = () => {
         </Box>
 
         <BridgeInputGroup
-          className="bridge-box"
           header={t('bridgeTo')}
           token={toToken}
           onAssetChange={(token) => {
@@ -299,9 +326,52 @@ const PrepareBridgePage = () => {
               : 'amount-input',
           }}
         />
-      </Box>
-      <BridgeQuoteCard />
-    </div>
+      </Column>
+
+      <Column height={BlockSize.Full} justifyContent={JustifyContent.center}>
+        {isLoading && !activeQuote ? (
+          <>
+            <Text textAlign={TextAlign.Center} color={TextColor.textMuted}>
+              {t('swapFetchingQuotes')}
+            </Text>
+            <MascotBackgroundAnimation height="64" width="64" />
+          </>
+        ) : null}
+      </Column>
+
+      <Column
+        gap={3}
+        className={activeQuote ? 'highlight' : ''}
+        style={{
+          paddingBottom: activeQuote?.approval ? 8 : 'revert-layer',
+          paddingTop: activeQuote?.approval ? 12 : undefined,
+        }}
+      >
+        <BridgeQuoteCard />
+        <Footer padding={0} flexDirection={FlexDirection.Column} gap={1}>
+          <BridgeCTAButton />
+          {activeQuote?.approval ? (
+            <Row justifyContent={JustifyContent.center} gap={1}>
+              <Text
+                color={TextColor.textAlternative}
+                variant={TextVariant.bodyXs}
+                textAlign={TextAlign.Center}
+              >
+                {t('willApproveAmountForBridging', [
+                  fromAmount,
+                  fromToken?.symbol,
+                ])}
+              </Text>
+              {fromAmount && (
+                <Tooltip title={t('grantExactAccess')}>
+                  {t('bridgeApprovalWarning', [fromAmount, fromToken?.symbol])}
+                </Tooltip>
+              )}
+            </Row>
+          ) : null}
+        </Footer>
+      </Column>
+    </Column>
   );
 };
 
