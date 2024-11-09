@@ -42,7 +42,7 @@ export const BridgeQuotesModal = ({
     useSelector(getBridgeQuotes);
   const sortOrder = useSelector(getBridgeSortOrder);
   const currency = useSelector(getCurrentCurrency);
-  const { isLoading } = useSelector(getBridgeQuotes);
+  const { isLoading, isQuoteGoingToRefresh } = useSelector(getBridgeQuotes);
 
   const secondsUntilNextRefresh = useCountdownTimer();
 
@@ -197,7 +197,7 @@ export const BridgeQuotesModal = ({
             })}
           </Box>
           <Box className="quotes-modal__timer">
-            {!isLoading && (
+            {!isLoading && isQuoteGoingToRefresh && (
               <Text>{t('swapNewQuoteIn', [secondsUntilNextRefresh])}</Text>
             )}
           </Box>
