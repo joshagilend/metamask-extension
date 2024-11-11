@@ -12,7 +12,8 @@ import {
 import { MetamaskNotificationsProvider } from '../contexts/metamask-notifications';
 import { AssetPollingProvider } from '../contexts/assetPolling';
 import { TokenDetectionProvider } from '../contexts/tokenDetection';
-import ErrorPage from './error';
+import ErrorPage from './error-page/error-page.component';
+
 import Routes from './routes';
 
 class Index extends PureComponent {
@@ -27,7 +28,7 @@ class Index extends PureComponent {
   }
 
   render() {
-    const { error, errorId } = this.state;
+    const { error } = this.state;
     const { store } = this.props;
 
     if (error) {
@@ -35,7 +36,7 @@ class Index extends PureComponent {
         <Provider store={store}>
           <I18nProvider>
             <LegacyI18nProvider>
-              <ErrorPage error={error} errorId={errorId} />
+              <ErrorPage error={error} />
             </LegacyI18nProvider>
           </I18nProvider>
         </Provider>
