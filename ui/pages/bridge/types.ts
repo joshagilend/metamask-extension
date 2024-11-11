@@ -2,6 +2,13 @@ import { BigNumber } from 'bignumber.js';
 import { SwapsTokenObject } from '../../../shared/constants/swaps';
 import { SwapsEthToken } from '../../selectors';
 
+export type QuoteFees = {
+  l1GasInDecGwei?: {
+    approval?: BigNumber;
+    trade: BigNumber;
+  };
+};
+
 // Values derived from the quote response
 export type QuoteMetadata = {
   totalNetworkFee: { raw: BigNumber; fiat: BigNumber | null }; // gasFees + relayerFees
