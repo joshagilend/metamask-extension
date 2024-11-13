@@ -704,7 +704,7 @@ export const createBridgeMockStore = ({
   bridgeSliceOverrides = {},
   bridgeStateOverrides = {},
   metamaskStateOverrides = {},
-}) => {
+} = {}) => {
   const swapsStore = createSwapsMockStore();
   return {
     ...swapsStore,

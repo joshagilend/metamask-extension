@@ -145,6 +145,9 @@ describe('Ducks - Bridge', () => {
       expect(actions[0].type).toStrictEqual('bridge/resetInputFields');
       const newState = bridgeReducer(state, actions[0]);
       expect(newState).toStrictEqual({
+        fromNativeExchangeRate: null,
+        fromTokenExchangeRate: null,
+        selectedQuote: null,
         toChainId: null,
         fromToken: null,
         toToken: null,
@@ -208,10 +211,16 @@ describe('Ducks - Bridge', () => {
       expect(actions[0].type).toStrictEqual('bridge/resetInputFields');
       const newState = bridgeReducer(state, actions[0]);
       expect(newState).toStrictEqual({
-        toChainId: null,
+        fromNativeExchangeRate: null,
         fromToken: null,
-        toToken: null,
+        fromTokenExchangeRate: null,
         fromTokenInputValue: null,
+        selectedQuote: null,
+        sortOrder: 0,
+        toChainId: null,
+        toNativeExchangeRate: null,
+        toToken: null,
+        toTokenExchangeRate: null,
       });
     });
   });
