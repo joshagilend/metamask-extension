@@ -7,6 +7,7 @@ import {
   sumDecimals,
 } from '../../../../shared/modules/conversion.utils';
 import { formatCurrency } from '../../../helpers/utils/confirm-tx.util';
+import { DEFAULT_PRECISION } from '../../../hooks/useCurrencyDisplay';
 
 export const isValidQuoteRequest = (
   partialRequest: Partial<QuoteRequest>,
@@ -198,5 +199,15 @@ export const formatTokenAmount = (
   precision: number = 2,
 ) => `${amount.toFixed(precision)} ${symbol}`;
 
-export const formatFiatAmount = (amount: BigNumber | null, currency: string) =>
-  amount ? formatCurrency(amount.toString(), currency) : undefined;
+export const formatFiatAmount = (
+  amount: BigNumber | null,
+  currency: string,
+  precision: number = DEFAULT_PRECISION,
+) => {
+  if (precision === 0 && amount?.lt(1)) {
+    return `<${formatCurrency('0', currency, precision)}`;
+  }
+  return amount
+    ? formatCurrency(amount.toString(), currency, precision)
+    : undefined;
+};

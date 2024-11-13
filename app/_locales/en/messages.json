@@ -868,8 +868,8 @@
   "bridgeLowest": {
     "message": "Lowest"
   },
-  "bridgeOverallCost": {
-    "message": "Overall cost"
+  "bridgeNetCost": {
+    "message": "Net cost"
   },
   "bridgeSelectNetwork": {
     "message": "Select network"
@@ -4343,6 +4343,10 @@
   },
   "quoteRate": {
     "message": "Quote rate"
+  },
+  "quotedNetworkFee": { "message": "$1 network fee" },
+  "quotedReceiveAmount": {
+    "message": "$1 receive amount"
   },
   "rank": {
     "message": "Rank"
